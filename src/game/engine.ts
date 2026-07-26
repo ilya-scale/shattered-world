@@ -217,7 +217,7 @@ function standable(g: GameState, q: number, r: number): boolean {
 }
 
 /** Elevation rule: move / melee-attack only across ≤ 1 grade difference. */
-function gradeOk(g: GameState, from: Hex, to: Hex): boolean {
+export function gradeOk(g: GameState, from: Hex, to: Hex): boolean {
   const a = effectiveTerrain(g, from.q, from.r);
   const b = effectiveTerrain(g, to.q, to.r);
   if (!a || !b) return false;
