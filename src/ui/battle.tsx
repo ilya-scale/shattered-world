@@ -4,10 +4,11 @@
 
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { DIRS, hexDist, keyOf, type Hex } from '../game/hex';
-import { STATS, halfCost, type Faction, type UnitType } from '../game/data';
+import { PASSABLE, STATS, halfCost, type Faction, type UnitType } from '../game/data';
 import {
-  attackTargets, canSummon, defenderAura, mapOf, planeswalkCells, reachableCells,
-  shiftTargets, summonCells, translocateDests, unitAt, unitCanAct,
+  attackTargets, canSummon, defenderAura, effectiveTerrain, gradeOk, mapOf,
+  planeswalkCells, reachableCells, shiftTargets, summonCells, translocateDests,
+  unitAt, unitCanAct,
   type GameAction, type GameState, type Unit,
 } from '../game/engine';
 import { hexesOf, type MapDef } from '../game/maps';
@@ -247,6 +248,7 @@ export function BattleScreen({ g, me, hotseat, dispatch, onResign }: {
     if (myTurn && sel && sel.faction === my) {
       if (mode === 'move') {
         const rs = reachableCells(g, sel);
+        const rKeys = new Set(rs.map(keyOf));
         rs.forEach((c) => {
           const hot = hover && hover.q === c.q && hover.r === c.r;
           cells.push({
@@ -256,7 +258,23 @@ export function BattleScreen({ g, me, hotseat, dispatch, onResign }: {
             label: c.manaCost > 0 ? `✦${c.manaCost}` : c.n,
           });
         });
-        if (hover && rs.some((c) => c.q === hover.q && c.r === hover.r)) {
+        // faint red threat ring: hexes the unit could strike, anchored at the
+        // hovered destination (move-then-attack is legal) or its current hex
+        const s = STATS[sel.type];
+        if (s.atk !== null && sel.attacks > 0) {
+          const from: Hex = hover && rKeys.has(keyOf(hover)) ? hover : { q: sel.q, r: sel.r };
+          within(map, from, s.rng).forEach((c) => {
+            const d = hexDist(from, c);
+            if (s.minRng && d < s.minRng) return;
+            if (s.rng === 1 && !gradeOk(g, from, c)) return;
+            const t = effectiveTerrain(g, c.q, c.r);
+            if (!t || !PASSABLE[t]) return;
+            const k = keyOf(c);
+            if (rKeys.has(k) || (c.q === sel.q && c.r === sel.r)) return;
+            cells.push({ q: c.q, r: c.r, cls: 'atk-range' });
+          });
+        }
+        if (hover && rKeys.has(keyOf(hover))) {
           line = routeTo(sel, hover, rs);
           lineCls = 'move';
           arrow = true;
