@@ -219,6 +219,26 @@ check(STATS.catapult.minRng === 5, 'catapult min range 5');
   }
 }
 
+// ---- World of Amphis: exactly 180°-symmetric (rotation p -> S-p, A<->B) ----
+{
+  const am = MAPS.amphis;
+  const S = { q: 18, r: 44 }; // centroid of portal A + centroid of portal B
+  let bad = 0;
+  for (const [k, t] of am.terrain) {
+    const [q, r] = k.split(',').map(Number);
+    if (am.terrain.get((S.q - q) + ',' + (S.r - r)) !== t) bad++;
+  }
+  check(bad === 0, 'amphis: terrain exactly 180°-symmetric');
+  check(
+    am.sources.every((s) => am.sources.some((o) => o.q === S.q - s.q && o.r === S.r - s.r)),
+    'amphis: sources symmetric under rotation',
+  );
+  check(
+    am.portals.a.every((p) => am.portals.b.some((o) => o.q === S.q - p.q && o.r === S.r - p.r)),
+    'amphis: portal A rotates onto portal B',
+  );
+}
+
 // ---- battle log: heal applications merge into one entry ----
 {
   let hg = createGame(21, 'control', 30, 'a');

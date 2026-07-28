@@ -76,54 +76,64 @@ function buildIsle(): ReadonlyMap<string, Terrain> {
 // located by their drawn markers, and the ramps/bridges are the ones drawn
 // in the image (olive ramp tiles and brown bridge spans, all in symmetric
 // pairs). Every source is shiftable and both portals connect.
+//
+// The extraction was then made exactly 180°-symmetric (rotation p -> S-p
+// about the board centre, portals mapping A<->B): eight fringe hexes that
+// lacked a rotational twin were paired up or dropped, and eleven twin
+// PAIRS of ramps/bridges were added to open the walled-off low-ground
+// pockets, giving each base three distinct lanes out (the old main road, a
+// mountain flank lane behind each base, and a coastal through-lane across
+// the water strips at rows 22/(15,4)-(10,8) and their mirrors). Every
+// low-ground region except one decorative 1-hex nook per side is now
+// reachable from both portals, and the reachable set is itself symmetric.
 // . void · g grass · w water · s sand · f rainforest · m mountains
 // d desert mountains · r ramp · b bridge · o mana source · A/B portals
 const AMPHIS_ROWS: string[] = [
   '...................ww......gg',
   '..........mg......www..gmmfrg',
-  '..........mmg...ggwwww.ggmmmogww',
+  '..........mrg...ggwwww.ggmmmogww',
   '.......omfgwwmmgggwwwrgmggmgwwww',
-  '.......ggggwwggmgggwwgwgmgmmwwwm',
+  '.......ggggwwggmgggwwgwgmgmmbwwm',
   '.......mgfwwgggwbwrwwbwmgwwbwgm',
-  '........ggwwggmwrgwbwgwwwbwmmgf...BB',
+  '.......mggwwggmwrgwbwgwwwbwmmgf...BB',
   '.......gggwwgmggggwgggwwwggmfgg..BBB',
   '.......gwwbggggggwwwwggggggrmmggrgBBg',
   '.......wgwfgmggsswwwggggggggmwmmmggg',
-  '.......gwgggmdgssswwgggmmgggmmmmfmmw',
-  '....gggwwgmdsssssdmggmgfgmmsmmmggmmw',
+  '.......gbgggmdgssswwgggmmgggmmmmrmmw',
+  '....gggwwgmdsssssdmggmgfgmmsmmmgrmmw',
   '....gggwwgmmssssdmmfgggmmmdswggmmmmg',
   '...gggwgfmmdsmmdmmgggfmmdsdsgmmmgfg',
   '....gwwgfmssmmmmmgggggmmrsssgmfgfrmw',
-  '...wwggfmsommmmggggggmmssdswgmmgmmmmg',
+  '...wbggfmsommmmggggggmmssdswgmmgmmmmg',
   '...ggggmmsssfggggggmmmsddddssdfmmmwmgw',
-  '...gggmsssssggggggfssssdssssdsgmmggrgw',
+  '...gggmsssssggggggfssssdssssdsrmmggrgw',
   '....gggmsssssdmggddsssssssddsdsggmmmggwmm',
-  '...ggwmssddsddmmssssssssddddddddgmgwbwmmm',
+  '...ggwmssddsddmmssssssssddddddddgmgbbwmm',
   '.gggggwmddddsdsdssssssssssddsdssdggwgwmfm',
-  'gmgggwwmddddddddsssfgssssddssddsgmmgowfg',
-  '.mmwwwmmmddsssdsdssfofssdsdsssddmmmwwwmm',
-  'gfwogmmgsddssddssssgfsssddddddddmwwgggmg',
+  'gmgggwwmddddddddsssfgssssddsrddsgmmgowfg',
+  '.mrwbwmmmddsssdsdssfofssdsdsssddmmmwbwrm',
+  'gfwogmmgsddrsddssssgfsssddddddddmwwgggmg',
   'mfmwgwggdssdsddssssssssssdsdsddddmwggggg',
-  'mmwbwgmgddddddddssssssssmmddsddssmwgg',
-  '.mwggmmmggsdsddsssssssddggmdsssssmggg',
-  '..wgrggmmgsdssssdssssfggggggsssssmggg',
+  'mmwbbgmgddddddddssssssssmmddsddssmwgg',
+  'mmwggmmmggsdsddsssssssddggmdsssssmggg',
+  '..wgrggmmrsdssssdssssfggggggsssssmggg',
   '...wgmwmmmfdssddddsmmmggggggfsssmmgggg',
-  '....mmmmgmmgwsdssmmggggggmmmmosmfggww',
+  '...gmmmmgmmgwsdssmmggggggmmmmosmfggbw',
   '.....wmrfgfmgsssrmmgggggmmmmmssmfgwwg',
   '.....gfgmmmgsdsdmmfgggmmdmmsdmmfgwggg',
   '.....gmmmmggwsdmmmgggfmmdssssmmgwwggg',
-  '....wmmggmmmsmmgfgmggmdsssssdmgwwggg',
-  '.....wmmfmmmmgggmmgggwwsssgdmgggwg',
+  '....wmmrgmmmsmmgfgmggmdsssssdmgwwggg',
+  '.....wmmrmmmmgggmmgggwwsssgdmgggbg',
   '....gggmmmwmggggggggwwwssggmgfwgw',
   '....gAAgrggmmrggggggwwwwggggggbwwg',
   '....AAA..ggfmggwwwgggwggggmgwwggg',
   '.....AA...fgmmwbwwwgwbwgrwmggwwggm',
   '.........mgwbwwgmwbwwrwbwgggwwfgm',
-  '.........mwwwmmgmgwgwwgggmggwwgggg',
-  '.........wwwgmggmgrwwwgggmmwwgfmo',
-  '..........wgommmgg.wwwwgg...gmm',
+  '.........mwwbmmgmgwgwwgggmggwwgggg',
+  '........wwwwgmggmgrwwwgggmmwwgfmo',
+  '.........wwgommmgg.wwwwgg...grm',
   '...........grfmmg..www......gm',
-  '............gg',
+  '............gg......ww',
 ];
 
 const AMPHIS_CHAR: Record<string, Terrain> = {
